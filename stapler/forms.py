@@ -287,8 +287,8 @@ class StaplerBaseForm(BaseForm):
             # If not committing, add a method to the form to allow deferred
             # saving of m2m data.
             self.save_m2m = self._save_m2m
-
-        return instances
+        result = {f'{type(instance).__name__.lower()}_instance': instance for instance in instances}
+        return result
 
     def pre_save(self):
         pass
