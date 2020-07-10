@@ -63,6 +63,16 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(b.price, 300)
         self.assertEqual(m.name, 'Giant')
 
+    def test_returns_saved_models(self):
+        form = BikeManufacturerForm(data={'bike__name': 'Propel', 'manufacturer__name': 'Giant',
+                                          'manufacturer__revenue': '30000,-', 'bike__price': 300})
+        form.is_valid()
+        result = form.save()
+        b = Bike.objects.first()
+        m = Manufacturer.objects.first()
+        self.assertEqual(b, result['bike_instance'])
+        self.assertEqual(m, result['manufacturer_instance'])
+
     def test_updates_models(self):
         bike = Bike.objects.create(name='Propel', price=200)
         manufacturer = Manufacturer.objects.create(name='Giant', revenue='2000.000,-')
