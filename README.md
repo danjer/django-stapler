@@ -14,7 +14,7 @@ Django's ModelForm class lets you create a Form class for a model. This lets you
 [![Python 3.7](https://img.shields.io/badge/python-3.7-green.svg)](https://www.python.org/downloads/release/python-370/)
 [![Python 3.8](https://img.shields.io/badge/python-3.8-green.svg)](https://www.python.org/downloads/release/python-380/)
 
-* Django 2+
+* Django 2.2+
 
 ### Installing
 
