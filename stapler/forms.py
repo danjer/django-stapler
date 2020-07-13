@@ -52,7 +52,7 @@ class StaplerMetaclass(DeclarativeFieldsMetaclass):
 
 class StaplerBaseForm(BaseForm):
 
-    def __init__(self, **kwargs):
+    def __init__(self, data=None, **kwargs):
 
         instances = kwargs.pop('instances', [])
         initial = kwargs.get('initial')
@@ -82,7 +82,7 @@ class StaplerBaseForm(BaseForm):
             ac_object_data.update(initial)
 
         kwargs['initial'] = ac_object_data
-        super().__init__(**kwargs)
+        super().__init__(data, **kwargs)
 
     def _get_instance(self, mc, instances):
         for instance in instances:
