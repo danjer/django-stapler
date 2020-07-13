@@ -12,6 +12,11 @@ class StaplerFormTestCase(TestCase):
     def test_handles_clashing_fields(self):
         pass
 
+    def test_accepts_instance_keyword(self):
+        bike = Bike.objects.create(name='Propel', price=200)
+        form = BikeManufacturerForm(instance=bike)
+        self.assertEqual(form.bike_instance, bike)
+
     def test_is_not_bound(self):
         bike = Bike.objects.create(name='Propel', price=200)
         manufacturer = Manufacturer.objects.create(name='Giant', revenue='2000.000,-')
