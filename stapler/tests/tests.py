@@ -19,7 +19,7 @@ class StaplerFormTestCase(TestCase):
         self.assertFalse(form.is_bound)
 
     def test_is_bound(self):
-        form = BikeManufacturerForm(data={})
+        form = BikeManufacturerForm({})
         self.assertTrue(form.is_bound)
 
     def test_loads_instances_corretly(self):
@@ -42,19 +42,19 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(form.initial['bike__name'], 'Oltre xr4')
 
     def test_valid_invalid(self):
-        form = BikeManufacturerForm(data={'bike__name': 'Propel', 'manufacturer__name': 'Giant',
+        form = BikeManufacturerForm({'bike__name': 'Propel', 'manufacturer__name': 'Giant',
                                           'manufacturer__revenue': '30000,-'})
         self.assertTrue(form.is_bound)
         self.assertFalse(form.is_valid())
 
     def test_valid_valid(self):
-        form = BikeManufacturerForm(data={'bike__name': 'Propel', 'manufacturer__name':
+        form = BikeManufacturerForm({'bike__name': 'Propel', 'manufacturer__name':
             'Giant', 'manufacturer__revenue': '30000,-', 'bike__price': 300})
         self.assertTrue(form.is_bound)
         self.assertTrue(form.is_valid())
 
     def test_saves_models(self):
-        form = BikeManufacturerForm(data={'bike__name': 'Propel', 'manufacturer__name': 'Giant',
+        form = BikeManufacturerForm({'bike__name': 'Propel', 'manufacturer__name': 'Giant',
                                           'manufacturer__revenue': '30000,-', 'bike__price': 300})
         form.is_valid()
         result = form.save()
@@ -64,7 +64,7 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(m.name, 'Giant')
 
     def test_returns_saved_models(self):
-        form = BikeManufacturerForm(data={'bike__name': 'Propel', 'manufacturer__name': 'Giant',
+        form = BikeManufacturerForm({'bike__name': 'Propel', 'manufacturer__name': 'Giant',
                                           'manufacturer__revenue': '30000,-', 'bike__price': 300})
         form.is_valid()
         result = form.save()
@@ -76,7 +76,7 @@ class StaplerFormTestCase(TestCase):
     def test_updates_models(self):
         bike = Bike.objects.create(name='Propel', price=200)
         manufacturer = Manufacturer.objects.create(name='Giant', revenue='2000.000,-')
-        form = BikeManufacturerForm(data={'bike__name': 'Oltre xr4', 'manufacturer__name': 'Bianchi',
+        form = BikeManufacturerForm({'bike__name': 'Oltre xr4', 'manufacturer__name': 'Bianchi',
                                           'manufacturer__revenue': '30000,-', 'bike__price': 300},
                                     instances=(bike, manufacturer))
         form.is_valid()
