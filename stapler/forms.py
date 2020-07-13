@@ -40,7 +40,8 @@ class StaplerMetaclass(DeclarativeFieldsMetaclass):
             for form in meta.modelforms:
                 # add class name prefix to fieldnames to prevent clashing between model fields
                 base_fields = prepend_prefix(form._meta.model, form.base_fields)
-                attrs.update(base_fields)
+                base_fields.update(attrs) # declared fields should override model fields
+                attrs = base_fields
 
             # add options from meta class
             attrs['_meta'] = StaplerFormOptions(meta)

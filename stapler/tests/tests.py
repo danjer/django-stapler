@@ -1,16 +1,19 @@
 from django.test import TestCase
 from .test_app.models import Bike, Manufacturer
-from stapler.tests.test_app.forms import BikeManufacturerForm
+from stapler.tests.test_app.forms import BikeManufacturerForm, CustomBikeManufacturerForm
+from django import forms
 
 # Create your tests here.
 class StaplerFormTestCase(TestCase):
 
-    def test_copies_fields(self):
+    def test_copies_fields_with_clashing_names(self):
         form = BikeManufacturerForm()
         self.assertEqual(4, len(form.fields))
 
-    def test_handles_clashing_fields(self):
-        pass
+    def test_does_not_override_declared_fields(self):
+        form = CustomBikeManufacturerForm()
+        self.assertEqual(4, len(form.fields))
+        self.assertEqual(type(form.fields['bike__name']), forms.IntegerField)
 
     def test_accepts_instance_keyword(self):
         bike = Bike.objects.create(name='Propel', price=200)
