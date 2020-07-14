@@ -297,11 +297,9 @@ class StaplerBaseForm(BaseForm):
         return result
 
     def pre_save(self):
-        print('we gaan saven!!!')
         pass
 
     def post_save(self):
-        print('ja dit is gebeurd')
         pass
 
     def save(self, commit=True):
