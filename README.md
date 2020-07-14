@@ -5,6 +5,7 @@ Provides a simple way to combine multiple ModelForm classes
 
 ## Description
 
+
 Django's ModelForm class lets you create a Form class for a model. This lets you conveniently create and update model instances. In some specific cases it would be desiarble to combine multiple ModelForms so that you can create and update multiple model instances in one view with one form. django-stapler provides this functionality
 
 
@@ -23,11 +24,12 @@ pip install django-stapler
 ```
 
 ### Basic usage
-Add app to  settings.py
+Add app to settings.py
 ```python
-INSTALLED_APS = [...
-                 stapler,
-                ]
+
+INSTALLED_APPS = [ ...
+                   'stapler',
+                 ]
 ```
  Define Model classes as usual
 
@@ -81,6 +83,7 @@ You can use the ```StapledForm``` in views.py to create a new ```Bike``` and ```
 ```form.save()```. This wil return a dictionary with keys resembling the Model class names in lowercase with the ```_instance```
  suffix. The keys map to the newly created instances:
 
+views.py
 ```python
 from django.views.generic.edit import FormView
 from .forms import StapledForm
@@ -95,7 +98,7 @@ class SomeView(FormView):
         # It should return an HttpResponse.
         result = form.save()
         nw_bike = result['bike_instance']   # the saved bike instance
-        nw_manufacturer = result['manufacturer_instance] # the saved manufacturer instance
+        nw_manufacturer = result['manufacturer_instance'] # the saved manufacturer instance
         return super().form_valid(form)
 ```
 You can also use the form to update existing instances by providing a ```tuple``` of instances to the named ```instances``` argument:
