@@ -253,8 +253,9 @@ class StaplerBaseForm(BaseForm):
         """
         instances = self._get_instances()
         for instance in instances:
-            mfc = self._mc_to_mfc(type(instance))
-            cleaned_data = self.cleaned_data
+            mc = type(instance)
+            mfc = self._mc_to_mfc(mc)
+            cleaned_data = strip_prefix(type(instance), self.cleaned_data)
             exclude = mfc._meta.exclude
             fields = self.fields
             opts = instance._meta
@@ -265,14 +266,14 @@ class StaplerBaseForm(BaseForm):
             for f in chain(opts.many_to_many, opts.private_fields):
                 if not hasattr(f, 'save_form_data'):
                     continue
-                if fields and f.name not in fields:
+                if fields and f"{mc.__name__.lower()}__{f.name}" not in fields:
                     continue
-                if exclude and f.name in exclude:
+                if exclude and f"{mc.__name__.lower()}__{f.name}" in exclude:
                     continue
                 if f.name in cleaned_data:
                     f.save_form_data(instance, cleaned_data[f.name])
 
-    def _save(self, commit=True):
+    def _save(self, commit):
         """
         Save this form's self.instance object if commit=True. Otherwise, add
         a save_m2m() method to the form which can be called after the instance
@@ -296,14 +297,16 @@ class StaplerBaseForm(BaseForm):
         return result
 
     def pre_save(self):
+        print('we gaan saven!!!')
         pass
 
     def post_save(self):
+        print('ja dit is gebeurd')
         pass
 
-    def save(self):
+    def save(self, commit=True):
         self.pre_save()
-        instances = self._save()
+        instances = self._save(commit)
         self.post_save()
         return instances
 

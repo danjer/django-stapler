@@ -16,3 +16,4 @@ class Bike(models.Model):
     name = models.CharField(max_length=100)
     frame_type = models.CharField(max_length=100, default='roadbike')
     price = models.IntegerField()
+    available_countries = models.ManyToManyField(Country, 'available_bikes')

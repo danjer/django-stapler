@@ -1,6 +1,6 @@
 from django.test import TestCase
-from .test_app.models import Bike, Manufacturer
-from stapler.tests.test_app.forms import BikeManufacturerForm, CustomBikeManufacturerForm
+from .test_app.models import Bike, Manufacturer, Country
+from stapler.tests.test_app.forms import BikeManufacturerForm, CustomBikeManufacturerForm, M2mBikeManufacturerForm
 from django import forms
 
 # Create your tests here.
@@ -97,4 +97,19 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(m.revenue, '30000,-')
         self.assertEqual(b.pk, bike.pk)
         self.assertEqual(m.pk, manufacturer.pk)
+
+    def test_saves_m2m(self):
+        countries = [Country.objects.create(name=f'country_{0}') for i in range(3)]
+        for c in countries:
+            c.save()
+
+        data = {'bike__name': 'Oltre xr4',
+                'bike__price': 300,
+                'bike__available_countries': [1,2,3],
+                'manufacturer__name': 'Bianchi',
+                'manufacturer__revenue': '30000,-'}
+        form = M2mBikeManufacturerForm(data)
+        result = form.save(commit=True)
+        bike = result['bike_instance']
+        self.assertTrue(len(bike.available_countries.all()), 3)
 
