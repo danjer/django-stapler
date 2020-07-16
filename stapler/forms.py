@@ -26,6 +26,7 @@ class StaplerFormOptions:
 
     def __init__(self, options):
         self.modelforms = getattr(options, 'modelforms')
+        self.auto_prefix = getattr(options, 'auto_prefix', True)
 
 
 class StaplerMetaclass(DeclarativeFieldsMetaclass):
@@ -35,16 +36,21 @@ class StaplerMetaclass(DeclarativeFieldsMetaclass):
         # gather the fields of the inner Meta class and add them to attrs
         meta = attrs.pop('Meta', None)
         if meta:
+            options = StaplerFormOptions(meta)
             if not hasattr(meta, 'modelforms'):
                 raise AttributeError('make sure that modelforms attribute is set in inner Meta class')
+            base_fields = {}
             for form in meta.modelforms:
                 # add class name prefix to fieldnames to prevent clashing between model fields
-                base_fields = prepend_prefix(form._meta.model, form.base_fields)
-                base_fields.update(attrs) # declared fields should override model fields
-                attrs = base_fields
+                if options.auto_prefix:
+                    base_fields.update(prepend_prefix(form._meta.model, form.base_fields))
+                else:
+                    base_fields.update(form.base_fields)
+            base_fields.update(attrs) # declared fields should override model fields
+            attrs = base_fields
 
             # add options from meta class
-            attrs['_meta'] = StaplerFormOptions(meta)
+            attrs['_meta'] = options
         else:
             pass #raise TypeError('StaplerForm is missing class Meta.')
 
@@ -163,11 +169,12 @@ class StaplerBaseForm(BaseForm):
             current_instance = getattr(self, f'{mc.__name__.lower()}_instance')
             exclude = self._get_validation_exclusions(mfc, mc)
 
-            # modify the cleaned data, it should only contain cleaned data for the current modelclass (mc)
+            # if opts.auto_prefix is true, modify the cleaned data, it should only contain cleaned data for the current modelclass (mc)
             # in addition, the prefix should be removed so that the construct_instance function can be used
             # do so for fields attr to
-            self.cleaned_data = strip_prefix(mc, _cleaned_data)
-            self.fields = strip_prefix(mc,  _fields)
+            if opts.auto_prefix:
+                self.cleaned_data = strip_prefix(mc, _cleaned_data)
+                self.fields = strip_prefix(mc,  _fields)
 
             # Foreign Keys being used to represent inline relationships
             # are excluded from basic field value validation. This is for two
@@ -204,9 +211,10 @@ class StaplerBaseForm(BaseForm):
             if mfc_instance._validate_unique:
                 self.validate_unique(mc, self._get_validation_exclusions(mfc, mc))
 
-        # restore cleaned data
-        self.cleaned_data = _cleaned_data
-        self.fields = _fields
+        # restore cleaned data if necessary
+        if opts.auto_prefix:
+            self.cleaned_data = _cleaned_data
+            self.fields = _fields
 
     def validate_unique(self, mc, exclude):
         """
@@ -255,10 +263,17 @@ class StaplerBaseForm(BaseForm):
         for instance in instances:
             mc = type(instance)
             mfc = self._mc_to_mfc(mc)
-            cleaned_data = strip_prefix(type(instance), self.cleaned_data)
             exclude = mfc._meta.exclude
             fields = self.fields
             opts = instance._meta
+
+            # update cleaned_data if necessary
+            if self._meta.auto_prefix:
+                cleaned_data = strip_prefix(type(instance), self.cleaned_data)
+                field_prefix = f"{mc.__name__.lower()}__"
+            else:
+                cleaned_data = self.cleaned_data
+                field_prefix = ""
 
             # Note that for historical reasons we want to include also
             # private_fields here. (GenericRelation was previously a fake
@@ -266,9 +281,9 @@ class StaplerBaseForm(BaseForm):
             for f in chain(opts.many_to_many, opts.private_fields):
                 if not hasattr(f, 'save_form_data'):
                     continue
-                if fields and f"{mc.__name__.lower()}__{f.name}" not in fields:
+                if fields and f"{field_prefix}{f.name}" not in fields:
                     continue
-                if exclude and f"{mc.__name__.lower()}__{f.name}" in exclude:
+                if exclude and f"{field_prefix}{f.name}" in exclude:
                     continue
                 if f.name in cleaned_data:
                     f.save_form_data(instance, cleaned_data[f.name])

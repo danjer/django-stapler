@@ -1,6 +1,7 @@
 from django.test import TestCase
 from .test_app.models import Bike, Manufacturer, Country
-from stapler.tests.test_app.forms import BikeManufacturerForm, CustomBikeManufacturerForm, M2mBikeManufacturerForm
+from stapler.tests.test_app.forms import BikeManufacturerForm, CustomBikeManufacturerForm, M2mBikeManufacturerForm, \
+    BikeWheelForm
 from django import forms
 
 # Create your tests here.
@@ -9,6 +10,13 @@ class StaplerFormTestCase(TestCase):
     def test_copies_fields_with_clashing_names(self):
         form = BikeManufacturerForm()
         self.assertEqual(4, len(form.fields))
+
+    def test_handles_auto_prefix_option(self):
+        form = BikeWheelForm()
+        field_names = set([fn for fn in form.fields.keys()])
+        expected_field_names = set(('price', 'brand', 'name', 'available_countries'))
+        self.assertEqual(field_names, expected_field_names)
+
 
     def test_does_not_override_declared_fields(self):
         form = CustomBikeManufacturerForm()
@@ -71,6 +79,11 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(b.price, 300)
         self.assertEqual(m.name, 'Giant')
 
+    def tests_valid_with_auto_prefix_off(self):
+        data = {'brand': 'Giant', 'name': 'Propel', 'price': 300}
+        form = BikeWheelForm(data)
+        self.assertTrue(form.is_valid())
+
     def test_returns_saved_models(self):
         form = BikeManufacturerForm({'bike__name': 'Propel', 'manufacturer__name': 'Giant',
                                           'manufacturer__revenue': '30000,-', 'bike__price': 300})
@@ -80,6 +93,19 @@ class StaplerFormTestCase(TestCase):
         m = Manufacturer.objects.first()
         self.assertEqual(b, result['bike_instance'])
         self.assertEqual(m, result['manufacturer_instance'])
+
+    def test_returns_saved_models_with_auto_prefix_off(self):
+        data = {'brand': 'Giant', 'name': 'Propel', 'price': 300}
+        form = BikeWheelForm(data)
+        result = form.save()
+        bike = result['bike_instance']
+        wheel = result['wheel_instance']
+        self.assertEqual(wheel.brand, 'Giant')
+        self.assertEqual(bike.price, 300)
+        self.assertEqual(bike.pk, 1)
+        self.assertEqual(wheel.pk, 1)
+
+
 
     def test_updates_models(self):
         bike = Bike.objects.create(name='Propel', price=200)
@@ -113,3 +139,18 @@ class StaplerFormTestCase(TestCase):
         bike = result['bike_instance']
         self.assertTrue(len(bike.available_countries.all()), 3)
 
+    def test_saves_m2m_with_auto_prefix_off(self):
+        countries = [Country.objects.create(name=f'country_{0}') for i in range(3)]
+        for c in countries:
+            c.save()
+
+        data = {'brand': 'Giant', 'name': 'Propel', 'price': 300, 'available_countries': [1, 2, 3]}
+        form = BikeWheelForm(data)
+        result = form.save()
+        bike = result['bike_instance']
+        wheel = result['wheel_instance']
+        self.assertEqual(wheel.brand, 'Giant')
+        self.assertEqual(bike.price, 300)
+        self.assertEqual(bike.pk, 1)
+        self.assertEqual(wheel.pk, 1)
+        self.assertEqual(len(wheel.available_countries.all()), 3)
