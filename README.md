@@ -76,9 +76,13 @@ class StapledForm(StaplerForm):
 
     class Meta:
         modelforms = (BikeModelForm, ManufacturerModelForm)
+        #auto_prefix = False, defaults is True
 ```
 
 The ```StapledForm``` yields a form with four fields: ```bike__name, bike__price, manufacturer__name, manufacturer__revenue```.
+If you want to keep the original field names, you can set the ```auto_prefix``` attribute in the Meta class to ```False```.
+This may lead to unexpected behaviour when fieldnames between models clash.
+
 You can use the ```StapledForm``` in views.py to create a new ```Bike``` and ```Manufacturer``` instance in one go by calling
 ```form.save()```. This wil return a dictionary with keys resembling the Model class names in lowercase with the ```_instance```
  suffix. The keys map to the newly created instances:
@@ -101,6 +105,7 @@ class SomeView(FormView):
         nw_manufacturer = result['manufacturer_instance'] # the saved manufacturer instance
         return super().form_valid(form)
 ```
+
 You can also use the form to update existing instances by providing a ```tuple``` of instances to the named ```instances``` argument:
 ```python
 from .models import Bike, Manufacturer
