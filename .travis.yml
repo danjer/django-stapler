@@ -11,3 +11,13 @@ install:
 # command to run tests
 script:
   - tox
+
+#
+deploy:
+  provider: pypi
+  username: __token__
+  password: pypi-AgEIcHlwaS5vcmcCJDdmOWU1YWE0LTIyZDktNDIxZS1iN2IxLTIxNDZlMjQ2ZDAwZAACP3sicGVybWlzc2lvbnMiOiB7InByb2plY3RzIjogWyJkamFuZ28tc3RhcGxlciJdfSwgInZlcnNpb24iOiAxfQAABiCUWjWFkjC-u4rcMt3WCTN-9JH6AHFVFV6LLFbChj8Fvg
+  distributions: "sdist bdist_wheel"
+  skip_existing: true
+  on:
+    tags: true
