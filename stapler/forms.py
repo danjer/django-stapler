@@ -311,6 +311,33 @@ class StaplerBaseForm(BaseForm):
         result = {f'{type(instance).__name__.lower()}_instance': instance for instance in instances}
         return result
 
+    def _is_valid_instance(self, instance, errors):
+        if self._meta.auto_prefix:
+            field_prefix = f'{type(instance).__name__.lower()}__'
+        else:
+            field_prefix = ''
+        for f in chain(instance._meta.fields, instance._meta.many_to_many):
+            if f'{field_prefix}{f.name}' in errors:
+                return False
+        return True
+
+    def _is_valid(self):
+        instance_attrs = {f'{mfc._meta.model.__name__.lower()}_instance': True for mfc in self._meta.modelforms}
+        if not super().is_valid():
+            errors = [fn for fn in self.errors.keys()]
+            for instance_attr in instance_attrs.keys():
+                instance = getattr(self, instance_attr)
+                instance_attrs[instance_attr] = self._is_valid_instance(instance, errors)
+        self.validated_instances = instance_attrs
+
+    def is_valid(self):
+        self._is_valid()
+        return all([valid for instance, valid in self.validated_instances.items()])
+
+
+
+
+
     def pre_save(self):
         pass
 
