@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-import git
 from setuptools import setup, find_packages
 
-def get_version():
-    g = git.cmd.Git()
-    version = g.describe()
+def read_version():
+    with open("VERSION.txt", mode='r') as version_file:
+        version = version_file.read()
     return version
+
 
 
 if __name__ == "__main__":
     setup(
-        version=get_version(),
+        version=read_version(),
         packages=find_packages(exclude=["*tests*"])
     )
