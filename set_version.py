@@ -10,7 +10,6 @@ def write_version(version):
         version_file.write(version)
 
 def main():
-    print('Starting pre-commit routine')
     g = git.cmd.Git()
     repo_version = get_repo_version(g)
     current_version = read_version()

@@ -12,11 +12,16 @@ install:
 script:
   - tox
 
+# make sure that setup.py will read the current version
+before_deploy:
+  - python set_version.py
+
 #
 deploy:
   provider: pypi
-  username: __token__
-  password: pypi-AgEIcHlwaS5vcmcCJDdmOWU1YWE0LTIyZDktNDIxZS1iN2IxLTIxNDZlMjQ2ZDAwZAACP3sicGVybWlzc2lvbnMiOiB7InByb2plY3RzIjogWyJkamFuZ28tc3RhcGxlciJdfSwgInZlcnNpb24iOiAxfQAABiCUWjWFkjC-u4rcMt3WCTN-9JH6AHFVFV6LLFbChj8Fvg
+  username: "__token__"
+  password:
+    secure: "ZKQc2jpiMo/ehdU7W8Tnwc4Gxakzz3asIs7LFqRyQzEQnNu2pGWpAW2xJka6ofToqRwEmq9ebsdC6x/TZhVYu4ejfUwFRpZ4r9x4x2UEf8+j+3PlWmmt0+qSwb+MeV+R4Jqqiclj1zf+HnzmrA/ma3l4dwBvBs6O3jylhVDPA5htWou03H3Hd9VpTCTZuBekJ5M1BeIMBlW/TVPMTW1/4a866s2hnq74u/iUojKXuMPSt4wG8xBVPJaBilh7DKC9nGRgrGnSipoXFzNW1pHRkGIOqCZwN4t2ck7eGlO1ENXEjwC0cw53pg6XD0Jxui4UdBBKS3b8/e7hK80QzBTWsgu/q1YlFudGH8VTErUE7FvGu2ApdLmhF30XKQ3hA9KjawN6cuvZedEJFDF7k7oyhq5dA6uml94+d1Oky206pLrmEZXPvH2Qv101fR3VrZvdN7KTOgc69Pv0CKd12JBXgh5Fn4D+yh34VTdV9heBjKXL7ktPDGlP+EwT0t4oIo4CFuRd0J/F69PyBFcAFNVmIWpIzhKL/PfMfyT0kzV/BSBXCwUV8aFMJu4f7fUD9C8peDOGc2b26r9flLUHqBbt/JsCIQGgqTb0TdrDQDC/rG7XETXvN/GnuYqt/hVgnYEpFrc8kVgXkdsaQ1HgI4NbVwVl3xHa0OZjREGRMVt6HGM="
   distributions: "sdist bdist_wheel"
   skip_existing: true
   on:
