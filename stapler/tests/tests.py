@@ -154,3 +154,15 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(bike.pk, 1)
         self.assertEqual(wheel.pk, 1)
         self.assertEqual(len(wheel.available_countries.all()), 3)
+
+    def test_categorizes_errors(self):
+        raise Exception('TODO')
+
+    def test_required_modelforms_option(self):
+        raise Exception('TODO')
+
+    def test_saves_valid_instances_only(self):
+        raise Exception('TODO')
+
+    def test_overrides_save_method(self):
+        raise Exception('TODO')
