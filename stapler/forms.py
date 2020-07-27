@@ -52,6 +52,7 @@ class StaplerMetaclass(DeclarativeFieldsMetaclass):
 
             # add options from meta class
             attrs['_meta'] = options
+
         else:
             pass
 
@@ -337,11 +338,7 @@ class StaplerBaseForm(BaseForm):
         self._is_valid()
         required_instances = set([f'{mfc._meta.model.__name__.lower()}_instance' for mfc in self._meta.required])
         valid_instances = set([instance for instance, valid in self.validated_instances.items() if valid])
-        print(valid_instances)
-        print(required_instances)
-        print(not(bool(valid_instances - required_instances)))
-        print(self.errors)
-        return bool(valid_instances - required_instances)
+        return not(required_instances - valid_instances)
 
     def pre_save(self):
         pass

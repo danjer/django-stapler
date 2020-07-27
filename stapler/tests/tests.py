@@ -166,7 +166,6 @@ class StaplerFormTestCase(TestCase):
 
         data = {'name': 'Giant', 'price': 2000, 'available_countries': [1, 2]}
         form = BikeWheelForm(data)
-        print(form._meta.required)
         self.assertTrue(BikeModelForm in form._meta.required)
         self.assertTrue(form.is_valid())
 
