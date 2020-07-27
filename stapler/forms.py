@@ -1,3 +1,5 @@
+import  copy
+
 from django.forms.forms import BaseForm
 from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 from django.forms.forms import DeclarativeFieldsMetaclass
@@ -62,6 +64,8 @@ class StaplerMetaclass(DeclarativeFieldsMetaclass):
 class StaplerBaseForm(BaseForm):
 
     def __init__(self, data=None, **kwargs):
+
+        self._validated_instances = None # stores the instance validation results after clean has been called
         instances = kwargs.pop('instances', [])
         instance = kwargs.pop('instance', None)
         if instance:
@@ -97,6 +101,21 @@ class StaplerBaseForm(BaseForm):
         kwargs['initial'] = ac_object_data
         super().__init__(data, **kwargs)
 
+
+    @property
+    def validated_instances(self):
+        if self._validated_instances == None:
+            self._is_valid()
+        return self._validated_instances
+
+    @property
+    def valid_instances(self):
+        return self._get_valid_instances()
+
+    @property
+    def invalid_instances(self):
+        return self._get_invalid_instances()
+
     def _get_instance(self, mc, instances):
         for instance in instances:
             if type(instance) == mc:
@@ -107,6 +126,12 @@ class StaplerBaseForm(BaseForm):
         attr_names = [f'{m}_instance' for m in mcs]
         instances = [getattr(self, attr_name) for attr_name in attr_names]
         return instances
+
+    def _get_valid_instances(self):
+        return [getattr(self, f'{instance}') for instance, valid in self.validated_instances.items() if valid]
+
+    def _get_invalid_instances(self):
+        return [getattr(self, f'{instance}') for instance, valid in self.validated_instances.items() if not valid]
 
     def _mc_to_mfc(self, mc):
         mfcs = self._meta.modelforms
@@ -261,8 +286,7 @@ class StaplerBaseForm(BaseForm):
         """
         Save the many-to-many fields and generic relations for this form.
         """
-        instances = self._get_instances()
-        for instance in instances:
+        for instance in self.valid_instances:
             mc = type(instance)
             mfc = self._mc_to_mfc(mc)
             exclude = mfc._meta.exclude
@@ -296,22 +320,32 @@ class StaplerBaseForm(BaseForm):
         a save_m2m() method to the form which can be called after the instance
         is saved manually at a later time. Return the model instance.
         """
-        if self.errors:
-            raise ValueError(
-                "At least one of the instances could not be created/changed because the data didn't validate.")
 
-        instances = self._get_instances()
+        # if any errors, make sure that the belong to non required instances
+        if self.errors:
+            errors = copy.deepcopy(self.errors)
+            for instance in self.invalid_instances:
+                for f in instance._meta.fields:
+                    errors.pop(f.name, None)
+                for f in instance._meta.many_to_many:
+                    errors.pop(f.name, None)
+            if errors:
+                raise ValueError(
+                    "At least one of the instances could not be created/changed because the data didn't validate. %s" % self.invalid_instances)
+
         if commit:
             # If committing, save the instance and the m2m data immediately.
-            for instance in instances:
+            for instance in self.valid_instances:
                 instance.save()
             self._save_m2m()
         else:
             # If not committing, add a method to the form to allow deferred
             # saving of m2m data.
             self.save_m2m = self._save_m2m
-        result = {f'{type(instance).__name__.lower()}_instance': instance for instance in instances}
-        return result
+        saved_instances = {f'{type(instance).__name__.lower()}_instance': instance for instance in self.valid_instances}
+        failed_instances = {f'{type(instance).__name__.lower()}_instance': None for instance in self.invalid_instances}
+        saved_instances.update(failed_instances)
+        return saved_instances
 
     def _is_valid_instance(self, instance, errors):
         if self._meta.auto_prefix:
@@ -332,7 +366,7 @@ class StaplerBaseForm(BaseForm):
             for instance_attr in instance_attrs.keys():
                 instance = getattr(self, instance_attr)
                 instance_attrs[instance_attr] = self._is_valid_instance(instance, errors)
-        self.validated_instances = instance_attrs
+        self._validated_instances = instance_attrs
 
     def is_valid(self):
         self._is_valid()

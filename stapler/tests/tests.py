@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .test_app.models import Bike, Manufacturer, Country
+from .test_app.models import Bike, Manufacturer, Country, Wheel
 from stapler.tests.test_app.forms import BikeManufacturerForm, CustomBikeManufacturerForm, M2mBikeManufacturerForm, \
     BikeWheelForm, BikeModelForm
 from django import forms
@@ -156,9 +156,6 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(wheel.pk, 1)
         self.assertEqual(len(wheel.available_countries.all()), 3)
 
-    def test_categorizes_errors(self):
-        pass
-
     def test_required_modelforms_option(self):
         for _ in range(2):
             c = Country.objects.create(name=f'land_{_}')
@@ -169,9 +166,23 @@ class StaplerFormTestCase(TestCase):
         self.assertTrue(BikeModelForm in form._meta.required)
         self.assertTrue(form.is_valid())
 
+    def test_saves_valid_instances_only(self):
+        for _ in range(2):
+            c = Country.objects.create(name=f'land_{_}')
+            c.save()
 
-    # def test_saves_valid_instances_only(self):
-    #     raise Exception('TODO')
-    #
+        data = {'name': 'Giant', 'price': 2000, 'available_countries': [1, 2]}
+        form = BikeWheelForm(data)
+        self.assertTrue(BikeModelForm in form._meta.required)
+        self.assertTrue(form.is_valid())
+        results = form.save()
+        saved_bike = results['bike_instance']
+        failed_wheel = results['wheel_instance']
+
+        self.assertEqual(len(Bike.objects.all()), 1)
+        self.assertEqual(len(Wheel.objects.all()), 0)
+        self.assertEqual(saved_bike.pk, 1)
+        self.assertEqual(failed_wheel, None)
+
     # def test_overrides_save_method(self):
     #     raise Exception('TODO')
