@@ -1,7 +1,7 @@
 from django.test import TestCase
-from .test_app.models import Bike, Manufacturer, Country
+from .test_app.models import Bike, Manufacturer, Country, Wheel
 from stapler.tests.test_app.forms import BikeManufacturerForm, CustomBikeManufacturerForm, M2mBikeManufacturerForm, \
-    BikeWheelForm
+    BikeWheelForm, BikeModelForm
 from django import forms
 
 # Create your tests here.
@@ -84,6 +84,7 @@ class StaplerFormTestCase(TestCase):
         form = BikeWheelForm(data)
         self.assertTrue(form.is_valid())
 
+
     def test_returns_saved_models(self):
         form = BikeManufacturerForm({'bike__name': 'Propel', 'manufacturer__name': 'Giant',
                                           'manufacturer__revenue': '30000,-', 'bike__price': 300})
@@ -154,3 +155,34 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(bike.pk, 1)
         self.assertEqual(wheel.pk, 1)
         self.assertEqual(len(wheel.available_countries.all()), 3)
+
+    def test_required_modelforms_option(self):
+        for _ in range(2):
+            c = Country.objects.create(name=f'land_{_}')
+            c.save()
+
+        data = {'name': 'Giant', 'price': 2000, 'available_countries': [1, 2]}
+        form = BikeWheelForm(data)
+        self.assertTrue(BikeModelForm in form._meta.required)
+        self.assertTrue(form.is_valid())
+
+    def test_saves_valid_instances_only(self):
+        for _ in range(2):
+            c = Country.objects.create(name=f'land_{_}')
+            c.save()
+
+        data = {'name': 'Giant', 'price': 2000, 'available_countries': [1, 2]}
+        form = BikeWheelForm(data)
+        self.assertTrue(BikeModelForm in form._meta.required)
+        self.assertTrue(form.is_valid())
+        results = form.save()
+        saved_bike = results['bike_instance']
+        failed_wheel = results['wheel_instance']
+
+        self.assertEqual(len(Bike.objects.all()), 1)
+        self.assertEqual(len(Wheel.objects.all()), 0)
+        self.assertEqual(saved_bike.pk, 1)
+        self.assertEqual(failed_wheel, None)
+
+    # def test_overrides_save_method(self):
+    #     raise Exception('TODO')

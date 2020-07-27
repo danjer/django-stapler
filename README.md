@@ -140,6 +140,13 @@ class StapledForm(StaplerForm):
 
 ```
 
+## Extra options
+In addition to modelforms attribute, you can set a few options in ```Meta``` class that alter the behaviour of the ```StaplerForm```
+-  ```auto_prefix```: defaults to ```True```. This will append a prefix of the model class name to the appropriate fields
+-  ```required```: A tuple of the ```ModelForm``` classes that are required. By default, all ```ModelForm``` classes defined in ```modelforms``` are required.
+If a ```ModelForm``` is not in the ```required``` attribute,  it's errors are ignored and ```is_valid()``` can still return ```True```. 
+Calling ```save()``` in this case will only save the instances of ```ModelForms``` that did validate. Instead of an instance, ```None``` is stored in the returned dictionary
+
 
 
 ## License

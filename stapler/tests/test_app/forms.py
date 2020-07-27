@@ -50,6 +50,7 @@ class BikeWheelForm(StaplerForm):
     class Meta:
         modelforms = (BikeModelForm, WheelModelForm)
         auto_prefix = False
+        required = (BikeModelForm,)
 
 class M2mBikeManufacturerForm(StaplerForm):
 
