@@ -1,7 +1,7 @@
 from django.test import TestCase
 from .test_app.models import Bike, Manufacturer, Country
 from stapler.tests.test_app.forms import BikeManufacturerForm, CustomBikeManufacturerForm, M2mBikeManufacturerForm, \
-    BikeWheelForm
+    BikeWheelForm, BikeModelForm
 from django import forms
 
 # Create your tests here.
@@ -84,6 +84,7 @@ class StaplerFormTestCase(TestCase):
         form = BikeWheelForm(data)
         self.assertTrue(form.is_valid())
 
+
     def test_returns_saved_models(self):
         form = BikeManufacturerForm({'bike__name': 'Propel', 'manufacturer__name': 'Giant',
                                           'manufacturer__revenue': '30000,-', 'bike__price': 300})
@@ -156,13 +157,22 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(len(wheel.available_countries.all()), 3)
 
     def test_categorizes_errors(self):
-        raise Exception('TODO')
+        pass
 
     def test_required_modelforms_option(self):
-        raise Exception('TODO')
+        for _ in range(2):
+            c = Country.objects.create(name=f'land_{_}')
+            c.save()
 
-    def test_saves_valid_instances_only(self):
-        raise Exception('TODO')
+        data = {'name': 'Giant', 'price': 2000, 'available_countries': [1, 2]}
+        form = BikeWheelForm(data)
+        print(form._meta.required)
+        self.assertTrue(BikeModelForm in form._meta.required)
+        self.assertTrue(form.is_valid())
 
-    def test_overrides_save_method(self):
-        raise Exception('TODO')
+
+    # def test_saves_valid_instances_only(self):
+    #     raise Exception('TODO')
+    #
+    # def test_overrides_save_method(self):
+    #     raise Exception('TODO')

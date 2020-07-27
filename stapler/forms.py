@@ -27,6 +27,7 @@ class StaplerFormOptions:
     def __init__(self, options):
         self.modelforms = getattr(options, 'modelforms')
         self.auto_prefix = getattr(options, 'auto_prefix', True)
+        self.required = getattr(options, 'required', self.modelforms)
 
 
 class StaplerMetaclass(DeclarativeFieldsMetaclass):
@@ -52,7 +53,7 @@ class StaplerMetaclass(DeclarativeFieldsMetaclass):
             # add options from meta class
             attrs['_meta'] = options
         else:
-            pass #raise TypeError('StaplerForm is missing class Meta.')
+            pass
 
         return super().__new__(mcs, name, bases, attrs)
 
@@ -323,6 +324,8 @@ class StaplerBaseForm(BaseForm):
 
     def _is_valid(self):
         instance_attrs = {f'{mfc._meta.model.__name__.lower()}_instance': True for mfc in self._meta.modelforms}
+
+        # if one of the originally required fields was not valid, check which per instance which is valid or not
         if not super().is_valid():
             errors = [fn for fn in self.errors.keys()]
             for instance_attr in instance_attrs.keys():
@@ -332,11 +335,13 @@ class StaplerBaseForm(BaseForm):
 
     def is_valid(self):
         self._is_valid()
-        return all([valid for instance, valid in self.validated_instances.items()])
-
-
-
-
+        required_instances = set([f'{mfc._meta.model.__name__.lower()}_instance' for mfc in self._meta.required])
+        valid_instances = set([instance for instance, valid in self.validated_instances.items() if valid])
+        print(valid_instances)
+        print(required_instances)
+        print(not(bool(valid_instances - required_instances)))
+        print(self.errors)
+        return bool(valid_instances - required_instances)
 
     def pre_save(self):
         pass
