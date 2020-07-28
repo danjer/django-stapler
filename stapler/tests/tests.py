@@ -156,6 +156,15 @@ class StaplerFormTestCase(TestCase):
         self.assertEqual(wheel.pk, 1)
         self.assertEqual(len(wheel.available_countries.all()), 3)
 
+    def test_initial_with_auto_prefix_off(self):
+        bike = Bike.objects.create(name='Propel', price=300)
+        bike.save()
+        wheel = Wheel.objects.create(brand='Giant')
+        wheel.save()
+        form = BikeWheelForm(instances=(bike, wheel))
+        self.assertEqual(form.initial['name'], 'Propel')
+        self.assertEqual(form.initial['brand'], 'Giant')
+
     def test_required_modelforms_option(self):
         for _ in range(2):
             c = Country.objects.create(name=f'land_{_}')

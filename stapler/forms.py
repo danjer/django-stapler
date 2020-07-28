@@ -89,7 +89,10 @@ class StaplerBaseForm(BaseForm):
                 current_instance = instance
                 object_data = model_to_dict(instance, opts.fields, opts.exclude)
 
-            ac_object_data.update(prepend_prefix(mc, object_data))
+            if self._meta.auto_prefix:
+                ac_object_data.update(prepend_prefix(mc, object_data))
+            else:
+                ac_object_data.update(object_data)
 
             # set attribute for instance
             setattr(self, f'{mc.__name__.lower()}_instance', current_instance)
